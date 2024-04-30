@@ -1568,7 +1568,7 @@ class Phonons:
         self.AdjustQStar()
 
 
-    def ForcePositiveDefinite(self):
+    def ForcePositiveDefinite(self, unstable_freq=0, make_hard=1):
         """
         FORCE TO BE POSITIVE DEFINITE
         =============================
@@ -1597,7 +1597,13 @@ class Phonons:
         for iq in range(len(self.dynmats)):
             # Diagonalize the matrix
             w, pols = self.DyagDinQ(iq)
-
+            if unstable_freq != 0:
+                for i, freq in enumerate(w):
+                    ref_freq = np.min(w)
+                    if freq < 0 and abs(freq)>unstable_freq:
+                        w[i] = unstable_freq*(2-freq/ref_freq)
+            if make_hard != 1:
+                w = w*make_hard
             matrix = np.einsum("i, ji, ki", w**2, pols, np.conj(pols)) * np.sqrt(_m1_ * _m2_)
             self.dynmats[iq] = matrix
 
